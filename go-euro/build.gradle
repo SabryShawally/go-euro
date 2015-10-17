@@ -1,0 +1,25 @@
+apply plugin: 'java'
+
+sourceCompatibility = 1.7
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': 'com.go.euro.dev.app.LocationSearchRunner'
+    }
+    
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'com.sun.jersey:jersey-client:1.19'
+    compile 'com.google.code.gson:gson:2.4'
+    compile 'org.apache.commons:commons-csv:1.2'
+    compile 'org.apache.commons:commons-lang3:3.0'
+    compile 'commons-io:commons-io:2.4'
+}
