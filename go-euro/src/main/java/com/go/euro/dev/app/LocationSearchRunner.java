@@ -34,26 +34,20 @@ public class LocationSearchRunner {
         final List<Location> locations
                 = searchServiceConsumer.search(query);
         
+        final String userHome = System.getProperty("user.home");
+        final String fileName = userHome + File.separator + "locations.csv";
+            
         try {
             final LocationCsvWriter csvWriter = new LocationCsvWriter();
-            
-            final String userHome = System.getProperty("user.home");
-            final String fileName = userHome + File.separator + "locations.csv";
-            
-            System.out.println(fileName);
-            
             csvWriter.write(fileName, locations);
         } catch (final Exception ex) {
             log.log(Level.SEVERE, "Exception occured writing CSV file", ex);
         }
         
-        for (final Location location : locations) {
-            System.out.println("Location name = " + location.getName()
-                    + " type = " + location.getType()
-                    + " id = " + location.getId() 
-                    + " GeoPosition = " + location.getGeoPosition()
-                    + " Longitude = " + location.getGeoPosition().getLongitude()
-                    + " Latitude = " + location.getGeoPosition().getLatitude());
-        }
+        System.out.println(
+                String.format(
+                        "[%d] Locations found, results stored in [%s]", 
+                        locations.size(), 
+                        fileName));
     }
 }
