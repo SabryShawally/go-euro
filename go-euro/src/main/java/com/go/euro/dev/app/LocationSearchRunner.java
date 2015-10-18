@@ -1,6 +1,7 @@
 
 package com.go.euro.dev.app;
 
+import com.go.euro.dev.app.provider.GoEuroLocationServiceProvider;
 import com.go.euro.dev.model.Location;
 import java.io.File;
 import java.util.List;
@@ -28,7 +29,7 @@ public class LocationSearchRunner {
         final String query = args[0];
         
         final LocationServiceConsumer searchServiceConsumer
-                = new LocationServiceConsumer();
+                = new LocationServiceConsumer(new GoEuroLocationServiceProvider());
         
         final List<Location> locations
                 = searchServiceConsumer.search(query);

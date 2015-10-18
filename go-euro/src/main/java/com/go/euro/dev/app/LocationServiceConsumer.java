@@ -1,17 +1,9 @@
 
 package com.go.euro.dev.app;
 
+import com.go.euro.dev.app.provider.LocationServiceProvider;
 import com.go.euro.dev.model.Location;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import java.lang.reflect.Type;
-import java.util.Collections;
 import java.util.List;
-import javax.ws.rs.core.MediaType;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * <p>
@@ -22,68 +14,36 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class LocationServiceConsumer {
     
-    //Should be externally configurable outside the class
-    private static final String URL = "http://api.goeuro.com/api/v2/position/suggest/en/";
-    
+    private final LocationServiceProvider serviceProvider;
+
     /**
      * <p>
-     * Returns the matching locations returned form the web service for the
-     * given search query. This method will throw an IllegalArgumentException
-     * given that the search query is blank. An empty list will be returned if
-     * no results are found.
+     * Constructs a new instance using the given {@code serviceProvider}. This
+     * will throw an {@link IllegalStateException} if the given
+     * {@code serviceProvider} is null.
      * </p>
      */
-    public List<Location> search(final String query) {
-        
-        if (StringUtils.isEmpty(query)) {
-            throw new IllegalArgumentException("Please provide a search query");
+    public LocationServiceConsumer(final LocationServiceProvider serviceProvider) {
+        if (serviceProvider == null) {
+            throw new IllegalStateException("Cannot construct a consumer with no search provider.");
         }
         
-        final String resourceURL = getResourceURL(query);
-        
-        final Client client = Client.create();
-        final WebResource webResource = client.resource(resourceURL);
-        webResource.accept(MediaType.APPLICATION_JSON_TYPE);
-        
-        final ClientResponse response
-                = webResource.get(ClientResponse.class);
-        
-        if (response.getStatus() != 200) {
-            throw new RuntimeException("Search request failed : " + response.getStatus());
-        }
-        
-        final String output
-                = response.getEntity(String.class);
-        
-        if (StringUtils.isEmpty(output)) {
-            return Collections.EMPTY_LIST;
-        }
-        
-        return parseResponseFromJson(output);
+        this.serviceProvider = serviceProvider;
     }
-    
     /**
      * <p>
-     * Builds the query resource URL.
+     * Uses the {@link LocationServiceProvider} validation methods to validate
+     * the given search query, and throws an {@link IllegalArgumentException} if
+     * validation fails, else will return a list of locations that did match the
+     * search if any.
      * </p>
      */
-    private String getResourceURL(final String query) {
-        return URL + query;
-    }
-    
-    /**
-     * <p>
-     * Parses the given JSON string into the corresponding list of
-     * {@link Location} objects.
-     * </p>
-     */
-    private List<Location> parseResponseFromJson(final String jsonResponse) {
-        final Gson gson = new Gson();
+    public List<Location> search(final String query) throws IllegalArgumentException {
         
-        final Type listType = new TypeToken<List<Location>>(){}.getType();
-        final List<Location> locations
-                = (List<Location>) gson.fromJson(jsonResponse, listType);
+        if (!serviceProvider.isValidQuery(query)) {//Should pass out the criteria back to the user
+            throw new IllegalArgumentException("Given search query does not match criteria");
+        }
         
-        return locations;
+        return serviceProvider.search(query);
     }
 }
